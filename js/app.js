@@ -510,28 +510,18 @@ function handleFileSelect(event) {
 }
 
 // Import students from file
-async function importStudents() {
-  try {
-    const response = await fetch('https://script.google.com/macros/s/AKfycb.../exec', {
-      method: 'POST',
-      mode: 'no-cors', // ใช้ no-cors แก้ปัญหาเบื้องต้น
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        action: 'importStudents',
-        // ข้อมูลอื่นๆ ที่ต้องการส่ง
-      })
-    });
-    
-    // เนื่องจากใช้ no-cors จะไม่สามารถอ่าน response ได้โดยตรง
-    console.log('ส่งข้อมูลสำเร็จ (แต่ไม่สามารถอ่าน response ได้ในโหมด no-cors)');
-    
-    // วิธีแก้ไขเพิ่มเติม: ใช้ Google Apps Script ทำหน้าที่ redirect กลับ
-    window.location.href = 'https://script.google.com/macros/s/AKfycb.../exec?action=importSuccess';
-    
-  } catch (error) {
-    console.error('เกิดข้อผิดพลาด:', error);
+function importStudents() {
+  const script = document.createElement('script');
+  script.src = 'https://script.google.com/macros/s/AKfycb.../exec?action=importStudents&callback=handleResponse';
+  document.body.appendChild(script);
+}
+
+// ฟังก์ชันรับผลลัพธ์
+function handleResponse(response) {
+  if(response.success) {
+    alert('นำเข้าข้อมูลสำเร็จ: ' + JSON.stringify(response.data));
+  } else {
+    alert('เกิดข้อผิดพลาด: ' + response.message);
   }
 }
 
