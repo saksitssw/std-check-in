@@ -511,18 +511,23 @@ function handleFileSelect(event) {
 
 // Import students from file
 function importStudents() {
-  const script = document.createElement('script');
-  script.src = 'https://script.google.com/macros/s/AKfycb.../exec?action=importStudents&callback=handleResponse';
-  document.body.appendChild(script);
-}
-
-// ฟังก์ชันรับผลลัพธ์
-function handleResponse(response) {
-  if(response.success) {
-    alert('นำเข้าข้อมูลสำเร็จ: ' + JSON.stringify(response.data));
-  } else {
-    alert('เกิดข้อผิดพลาด: ' + response.message);
-  }
+  const form = document.getElementById('importForm');
+  const url = 'https://script.google.com/macros/s/AKfycb.../exec';
+  
+  // เปิดหน้าต่างใหม่
+  const win = window.open(url, 'GAS', 'width=500,height=500');
+  
+  // ส่งข้อมูลผ่าน Form
+  form.target = 'GAS';
+  form.action = url;
+  form.method = 'POST';
+  form.submit();
+  
+  // รับผลลัพธ์กลับ
+  window.addEventListener('message', (event) => {
+    if(event.origin !== 'https://script.google.com') return;
+    console.log('Received data:', event.data);
+  });
 }
 
 // Render student list for settings page
