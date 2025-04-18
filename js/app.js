@@ -1,6 +1,6 @@
 // Google Sheets configuration
-const scriptURL = 'YOUR_GOOGLE_APPS_SCRIPT_URL'; // Replace with your Google Apps Script URL
-const sheetID = 'YOUR_GOOGLE_SHEET_ID'; // Replace with your Google Sheet ID
+const scriptURL = 'https://script.google.com/u/0/home/projects/1OXi4B6w55KUMHVaytO2-YU9dNqYwyXtIhqtAVQ-RPVfpAF82b1rtToJ1/edit'; // Replace with your Google Apps Script URL
+const sheetID = 'https://docs.google.com/spreadsheets/d/1WBAOjCTDYOhyaONiNQ91ueoHm7dVLphoVL4eGOAfksw/edit?usp=sharing'; // Replace with your Google Sheet ID
 const studentsSheetName = 'Students';
 const checkinsSheetName = 'CheckIns';
 const absentStatsSheetName = 'AbsentStats';
