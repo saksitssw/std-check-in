@@ -659,3 +659,19 @@ function showInfo(message) {
         text: message
     });
 }
+
+function testConnection() {
+  const testURL = `${scriptURL}?action=test`;
+  console.log("Testing connection to:", testURL);
+  
+  fetch(testURL)
+    .then(response => {
+      console.log("Status:", response.status);
+      return response.text();
+    })
+    .then(text => console.log("Response:", text))
+    .catch(error => console.error("Error:", error));
+}
+
+// เรียกฟังก์ชันทดสอบ
+testConnection();
