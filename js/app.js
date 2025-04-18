@@ -511,23 +511,40 @@ function handleFileSelect(event) {
 
 // Import students from file
 function importStudents() {
-  const form = document.getElementById('importForm');
-  const url = 'https://script.google.com/macros/s/AKfycbxJiJLjJmfYTPAvNET-53SXVrZN4xgls22dTmXfK9GE6PxrZ5trQVjarmv0bYXd58Rbqw/exec';
-  
-  // เปิดหน้าต่างใหม่
-  const win = window.open(url, 'GAS', 'width=500,height=500');
-  
-  // ส่งข้อมูลผ่าน Form
-  form.target = 'GAS';
-  form.action = url;
-  form.method = 'POST';
-  form.submit();
-  
-  // รับผลลัพธ์กลับ
-  window.addEventListener('message', (event) => {
-    if(event.origin !== 'https://script.google.com') return;
-    console.log('Received data:', event.data);
-  });
+    const importData = JSON.parse(sessionStorage.getItem('importData'));
+    if (!importData || importData.length === 0) {
+        showError('ไม่พบข้อมูลนักเรียนที่จะนำเข้า');
+        return;
+    }
+    
+    // Prepare data for submission
+    const data = {
+        sheetId: sheetID,
+        students: importData
+    };
+    
+    fetch(`${scriptURL}?action=importStudents`, {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showSuccess(`นำเข้าข้อมูลนักเรียน ${importData.length} คนเรียบร้อยแล้ว`);
+            sessionStorage.removeItem('importData');
+            document.getElementById('import-btn').disabled = true;
+            document.getElementById('csv-file').value = '';
+            loadStudentsForSettings(); // Refresh the list
+        } else {
+            showError('เกิดข้อผิดพลาดในการนำเข้าข้อมูล: ' + data.message);
+        }
+    })
+    .catch(error => {
+        showError('เกิดข้อผิดพลาดในการเชื่อมต่อ: ' + error);
+    });
 }
 
 // Render student list for settings page
