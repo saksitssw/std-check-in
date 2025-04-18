@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ตั้งค่าระบบเช็กชื่อ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ตั้งค่าระบบเช็กชื่อ</h1>
+            <nav>
+                <a href="checkin.html" class="btn primary">เช็กชื่อ</a>
+                <a href="dashboard.html" class="btn secondary">แดชบอร์ด</a>
+            </nav>
+        </header>
+
+        <main>
+            <section class="import-section">
+                <h2>นำเข้ารายชื่อนักเรียน</h2>
+                <div class="upload-area">
+                    <input type="file" id="csv-file" accept=".csv,.xlsx,.xls">
+                    <label for="csv-file" class="btn primary">เลือกไฟล์ CSV/Excel</label>
+                    <button id="import-btn" class="btn secondary" disabled>นำเข้าข้อมูล</button>
+                    <p class="note">รูปแบบไฟล์: เลขที่,ชื่อ-นามสกุล (ไม่มีหัวตาราง)</p>
+                </div>
+            </section>
+
+            <section class="student-list-section">
+                <h2>รายชื่อนักเรียนทั้งหมด</h2>
+                <div class="table-container">
+                    <table id="settings-student-table">
+                        <thead>
+                            <tr>
+                                <th>เลขที่</th>
+                                <th>ชื่อ-นามสกุล</th>
+                                <th>การจัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="settings-student-list">
+                            <!-- Students will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the settings page
+            initSettingsPage();
+        });
+    </script>
+</body>
+</html>

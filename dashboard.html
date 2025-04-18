@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>แดชบอร์ดเช็กชื่อ</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>แดชบอร์ดเช็กชื่อ</h1>
+            <a href="checkin.html" class="btn primary">กลับไปเช็กชื่อ</a>
+        </header>
+
+        <main>
+            <section class="chart-section">
+                <h2>นักเรียนที่ไม่แจ้งข้อมูลสะสมมากที่สุด</h2>
+                <div class="chart-container">
+                    <canvas id="absent-chart"></canvas>
+                </div>
+            </section>
+
+            <section class="history-section">
+                <h2>ประวัติการเช็กชื่อ</h2>
+                <div id="checkin-history">
+                    <!-- History items will be loaded here -->
+                </div>
+            </section>
+
+            <!-- Modal for details -->
+            <div id="detail-modal" class="modal">
+                <div class="modal-content">
+                    <span class="close-modal">&times;</span>
+                    <h3 id="modal-title">รายละเอียดการเช็กชื่อ</h3>
+                    <div class="modal-date" id="modal-date"></div>
+                    <table id="detail-table">
+                        <thead>
+                            <tr>
+                                <th>เลขที่</th>
+                                <th>ชื่อ-นามสกุล</th>
+                                <th>สถานะ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detail-list">
+                            <!-- Details will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the dashboard
+            initDashboardPage();
+        });
+    </script>
+</body>
+</html>

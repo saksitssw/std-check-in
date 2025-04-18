@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบเช็กชื่อนักเรียน</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="js/app.js" defer></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>ระบบเช็กชื่อนักเรียน</h1>
+            <div id="current-time" class="time-display"></div>
+        </header>
+
+        <main>
+            <div class="control-buttons">
+                <button id="submit-btn" class="btn primary">ส่งข้อมูล</button>
+                <button id="reset-btn" class="btn secondary">โหมดค่าเริ่มต้น</button>
+            </div>
+
+            <div class="student-table-container">
+                <h2>รายชื่อนักเรียน</h2>
+                <table id="student-table">
+                    <thead>
+                        <tr>
+                            <th>เลขที่</th>
+                            <th>ชื่อ-นามสกุล</th>
+                            <th>สถานะ</th>
+                        </tr>
+                    </thead>
+                    <tbody id="student-list">
+                        <!-- Students will be loaded here -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="status-summary">
+                <div class="status-box" id="present-box">
+                    <h3>เข้าแถว <span class="count">0</span></h3>
+                    <div class="students-list"></div>
+                </div>
+                <div class="status-box" id="leave-box">
+                    <h3>ลา <span class="count">0</span></h3>
+                    <div class="students-list"></div>
+                </div>
+                <div class="status-box" id="absent-box">
+                    <h3>แจ้งว่าไม่เข้าแถว <span class="count">0</span></h3>
+                    <div class="students-list"></div>
+                </div>
+                <div class="status-box" id="unknown-box">
+                    <h3>ไม่ทราบข้อมูล <span class="count">0</span></h3>
+                    <div class="students-list"></div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize the app
+            initCheckInPage();
+        });
+    </script>
+</body>
+</html>

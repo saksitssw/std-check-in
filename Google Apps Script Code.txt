@@ -1,0 +1,347 @@
+// Google Apps Script code to handle Google Sheets operations
+const SHEET_NAME = {
+  STUDENTS: 'Students',
+  CHECK_INS: 'CheckIns',
+  ABSENT_STATS: 'AbsentStats'
+};
+
+function doGet(e) {
+  const action = e.parameter.action;
+  const sheetId = e.parameter.sheetId;
+  
+  try {
+    const ss = SpreadsheetApp.openById(sheetId);
+    
+    switch(action) {
+      case 'getStudents':
+        return getStudents(ss);
+      case 'getCheckIns':
+        return getCheckIns(ss);
+      case 'getAbsentStats':
+        return getAbsentStats(ss);
+      default:
+        return createResponse(false, 'Invalid action');
+    }
+  } catch (error) {
+    return createResponse(false, error.toString());
+  }
+}
+
+function doPost(e) {
+  const data = JSON.parse(e.postData.contents);
+  const sheetId = data.sheetId;
+  
+  try {
+    const ss = SpreadsheetApp.openById(sheetId);
+    
+    if (data.students) {
+      // Import students
+      return importStudents(ss, data.students);
+    } else if (data.date && data.students) {
+      // Save check-in
+      return saveCheckIn(ss, data.date, data.students);
+    } else {
+      return createResponse(false, 'Invalid data');
+    }
+  } catch (error) {
+    return createResponse(false, error.toString());
+  }
+}
+
+function doDelete(e) {
+  const params = e.parameter;
+  const sheetId = params.sheetId;
+  
+  try {
+    const ss = SpreadsheetApp.openById(sheetId);
+    
+    if (params.checkInId) {
+      // Delete check-in
+      return deleteCheckIn(ss, params.checkInId);
+    } else if (params.studentId) {
+      // Delete student
+      return deleteStudent(ss, params.studentId);
+    } else {
+      return createResponse(false, 'Invalid parameters');
+    }
+  } catch (error) {
+    return createResponse(false, error.toString());
+  }
+}
+
+// Helper functions
+function getStudents(ss) {
+  const sheet = ss.getSheetByName(SHEET_NAME.STUDENTS) || ss.insertSheet(SHEET_NAME.STUDENTS);
+  const data = sheet.getDataRange().getValues();
+  
+  // Skip header row if exists
+  const startRow = data.length > 0 && data[0][0] === 'ID' ? 1 : 0;
+  
+  const students = [];
+  for (let i = startRow; i < data.length; i++) {
+    if (data[i][0] && data[i][1] && data[i][2]) {
+      students.push({
+        id: data[i][0],
+        number: data[i][1],
+        name: data[i][2]
+      });
+    }
+  }
+  
+  return createResponse(true, students);
+}
+
+function getCheckIns(ss) {
+  const sheet = ss.getSheetByName(SHEET_NAME.CHECK_INS) || ss.insertSheet(SHEET_NAME.CHECK_INS);
+  const data = sheet.getDataRange().getValues();
+  
+  // Skip header row if exists
+  const startRow = data.length > 0 && data[0][0] === 'ID' ? 1 : 0;
+  
+  const checkIns = [];
+  let currentId = null;
+  let currentCheckIn = null;
+  
+  for (let i = startRow; i < data.length; i++) {
+    if (data[i][0] && data[i][0] !== currentId) {
+      // New check-in record
+      if (currentCheckIn) {
+        checkIns.push(currentCheckIn);
+      }
+      
+      currentId = data[i][0];
+      currentCheckIn = {
+        id: currentId,
+        date: data[i][1],
+        students: []
+      };
+    }
+    
+    if (currentCheckIn) {
+      currentCheckIn.students.push({
+        id: data[i][2],
+        number: data[i][3],
+        name: data[i][4],
+        status: data[i][5]
+      });
+    }
+  }
+  
+  // Add the last check-in
+  if (currentCheckIn) {
+    checkIns.push(currentCheckIn);
+  }
+  
+  return createResponse(true, checkIns);
+}
+
+function getAbsentStats(ss) {
+  const sheet = ss.getSheetByName(SHEET_NAME.ABSENT_STATS) || ss.insertSheet(SHEET_NAME.ABSENT_STATS);
+  const data = sheet.getDataRange().getValues();
+  
+  // Skip header row if exists
+  const startRow = data.length > 0 && data[0][0] === 'StudentID' ? 1 : 0;
+  
+  const stats = [];
+  for (let i = startRow; i < data.length; i++) {
+    if (data[i][0] && data[i][1] && data[i][2]) {
+      stats.push({
+        id: data[i][0],
+        name: data[i][1],
+        count: data[i][2]
+      });
+    }
+  }
+  
+  return createResponse(true, stats);
+}
+
+function importStudents(ss, students) {
+  const sheet = ss.getSheetByName(SHEET_NAME.STUDENTS) || ss.insertSheet(SHEET_NAME.STUDENTS);
+  
+  // Clear existing data (keep headers if they exist)
+  const hasHeaders = sheet.getRange(1, 1, 1, 3).getValues()[0][0] === 'ID';
+  sheet.clearContents();
+  
+  if (hasHeaders) {
+    sheet.getRange(1, 1, 1, 3).setValues([['ID', 'Number', 'Name']]);
+  }
+  
+  // Prepare data with unique IDs
+  const data = students.map((student, index) => {
+    return [
+      Utilities.getUuid(), // ID
+      student.number,
+      student.name
+    ];
+  });
+  
+  // Write data to sheet
+  if (data.length > 0) {
+    sheet.getRange(hasHeaders ? 2 : 1, 1, data.length, 3).setValues(data);
+  }
+  
+  // Update absent stats
+  updateAbsentStats(ss);
+  
+  return createResponse(true, `Imported ${students.length} students`);
+}
+
+function saveCheckIn(ss, date, students) {
+  const sheet = ss.getSheetByName(SHEET_NAME.CHECK_INS) || ss.insertSheet(SHEET_NAME.CHECK_INS);
+  
+  // Generate a unique ID for this check-in
+  const checkInId = Utilities.getUuid();
+  
+  // Prepare data
+  const data = students.map(student => {
+    return [
+      checkInId,       // CheckIn ID
+      date,            // Timestamp
+      student.id,      // Student ID
+      student.number,  // Student Number
+      student.name,    // Student Name
+      student.status   // Status
+    ];
+  });
+  
+  // Append data to sheet
+  if (data.length > 0) {
+    const lastRow = sheet.getLastRow();
+    sheet.getRange(lastRow + 1, 1, data.length, 6).setValues(data);
+  }
+  
+  // Update absent stats
+  updateAbsentStats(ss);
+  
+  return createResponse(true, `Saved check-in with ${students.length} records`);
+}
+
+function deleteCheckIn(ss, checkInId) {
+  const sheet = ss.getSheetByName(SHEET_NAME.CHECK_INS);
+  if (!sheet) return createResponse(true, 'No check-ins to delete');
+  
+  const data = sheet.getDataRange().getValues();
+  const rowsToDelete = [];
+  
+  // Find all rows with this checkInId (skip header if exists)
+  const hasHeader = data.length > 0 && data[0][0] === 'ID';
+  
+  for (let i = hasHeader ? 1 : 0; i < data.length; i++) {
+    if (data[i][0] === checkInId) {
+      rowsToDelete.push(i + 1); // +1 because sheet rows are 1-based
+    }
+  }
+  
+  // Delete rows from bottom to top to avoid shifting issues
+  for (let i = rowsToDelete.length - 1; i >= 0; i--) {
+    sheet.deleteRow(rowsToDelete[i]);
+  }
+  
+  // Update absent stats
+  updateAbsentStats(ss);
+  
+  return createResponse(true, `Deleted ${rowsToDelete.length} records`);
+}
+
+function deleteStudent(ss, studentId) {
+  // Delete from Students sheet
+  const studentsSheet = ss.getSheetByName(SHEET_NAME.STUDENTS);
+  if (studentsSheet) {
+    const studentData = studentsSheet.getDataRange().getValues();
+    const hasHeader = studentData.length > 0 && studentData[0][0] === 'ID';
+    
+    for (let i = hasHeader ? 1 : 0; i < studentData.length; i++) {
+      if (studentData[i][0] === studentId) {
+        studentsSheet.deleteRow(i + 1); // +1 because sheet rows are 1-based
+        break;
+      }
+    }
+  }
+  
+  // Delete all check-in records for this student
+  const checkInsSheet = ss.getSheetByName(SHEET_NAME.CHECK_INS);
+  if (checkInsSheet) {
+    const checkInData = checkInsSheet.getDataRange().getValues();
+    const hasHeader = checkInData.length > 0 && checkInData[0][0] === 'ID';
+    const rowsToDelete = [];
+    
+    for (let i = hasHeader ? 1 : 0; i < checkInData.length; i++) {
+      if (checkInData[i][2] === studentId) { // Student ID is in column 2 (0-based)
+        rowsToDelete.push(i + 1); // +1 because sheet rows are 1-based
+      }
+    }
+    
+    // Delete rows from bottom to top to avoid shifting issues
+    for (let i = rowsToDelete.length - 1; i >= 0; i--) {
+      checkInsSheet.deleteRow(rowsToDelete[i]);
+    }
+  }
+  
+  // Update absent stats
+  updateAbsentStats(ss);
+  
+  return createResponse(true, 'Deleted student and related records');
+}
+
+function updateAbsentStats(ss) {
+  const studentsSheet = ss.getSheetByName(SHEET_NAME.STUDENTS);
+  const checkInsSheet = ss.getSheetByName(SHEET_NAME.CHECK_INS);
+  const statsSheet = ss.getSheetByName(SHEET_NAME.ABSENT_STATS) || ss.insertSheet(SHEET_NAME.ABSENT_STATS);
+  
+  if (!studentsSheet || !checkInsSheet) {
+    return;
+  }
+  
+  // Get all students
+  const studentsData = studentsSheet.getDataRange().getValues();
+  const students = {};
+  const hasStudentsHeader = studentsData.length > 0 && studentsData[0][0] === 'ID';
+  
+  for (let i = hasStudentsHeader ? 1 : 0; i < studentsData.length; i++) {
+    if (studentsData[i][0]) {
+      students[studentsData[i][0]] = {
+        name: studentsData[i][2],
+        absentCount: 0
+      };
+    }
+  }
+  
+  // Count absent statuses for each student
+  const checkInsData = checkInsSheet.getDataRange().getValues();
+  const hasCheckInsHeader = checkInsData.length > 0 && checkInsData[0][0] === 'ID';
+  
+  for (let i = hasCheckInsHeader ? 1 : 0; i < checkInsData.length; i++) {
+    const studentId = checkInsData[i][2];
+    const status = checkInsData[i][5];
+    
+    if (studentId && status === 'absent' && students[studentId]) {
+      students[studentId].absentCount++;
+    }
+  }
+  
+  // Prepare data for stats sheet
+  const statsData = Object.entries(students).map(([id, student]) => {
+    return [id, student.name, student.absentCount];
+  });
+  
+  // Sort by absent count (descending)
+  statsData.sort((a, b) => b[2] - a[2]);
+  
+  // Update stats sheet
+  statsSheet.clear();
+  statsSheet.getRange(1, 1, 1, 3).setValues([['StudentID', 'Name', 'AbsentCount']]);
+  
+  if (statsData.length > 0) {
+    statsSheet.getRange(2, 1, statsData.length, 3).setValues(statsData);
+  }
+}
+
+function createResponse(success, data) {
+  return ContentService.createTextOutput(
+    JSON.stringify({
+      success: success,
+      data: data
+    })
+  ).setMimeType(ContentService.MimeType.JSON);
+}
