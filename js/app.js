@@ -1,5 +1,5 @@
 // Google Sheets configuration
-const scriptURL = 'https://script.google.com/macros/s/1OXi4B6w55KUMHVaytO2-YU9dNqYwyXtIhqtAVQ-RPVfpAF82b1rtToJ1/exec'; // Replace with your Google Apps Script URL
+const scriptURL = 'https://script.google.com/macros/s/AKfycbxJiJLjJmfYTPAvNET-53SXVrZN4xgls22dTmXfK9GE6PxrZ5trQVjarmv0bYXd58Rbqw/exec'; // Replace with your Google Apps Script URL
 const sheetID = 'https://docs.google.com/spreadsheets/d/1WBAOjCTDYOhyaONiNQ91ueoHm7dVLphoVL4eGOAfksw/edit?usp=sharing'; // Replace with your Google Sheet ID
 const studentsSheetName = 'Students';
 const checkinsSheetName = 'CheckIns';
