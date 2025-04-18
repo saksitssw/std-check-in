@@ -512,7 +512,7 @@ function handleFileSelect(event) {
 // Import students from file
 function importStudents() {
   const form = document.getElementById('importForm');
-  const url = 'https://script.google.com/macros/s/AKfycb.../exec';
+  const url = 'https://script.google.com/macros/s/AKfycbxJiJLjJmfYTPAvNET-53SXVrZN4xgls22dTmXfK9GE6PxrZ5trQVjarmv0bYXd58Rbqw/exec';
   
   // เปิดหน้าต่างใหม่
   const win = window.open(url, 'GAS', 'width=500,height=500');
