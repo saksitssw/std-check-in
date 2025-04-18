@@ -659,3 +659,22 @@ function showInfo(message) {
         text: message
     });
 }
+function testConnection() {
+  const testURL = `${scriptURL}?action=getStudents&sheetId=${sheetID}`;
+  console.log("Testing connection to:", testURL);
+  
+  fetch(testURL)
+    .then(response => {
+      console.log("Response status:", response.status);
+      return response.text();
+    })
+    .then(text => {
+      console.log("Response text:", text);
+    })
+    .catch(error => {
+      console.error("Connection failed:", error);
+    });
+}
+
+// เรียกฟังก์ชันทดสอบ
+testConnection();
